@@ -18,7 +18,6 @@ import {
   Connection,
   ConnectionOptions,
   createConnection,
-  getRepository,
 } from 'typeorm';
 import { CasbinMongoRule } from './casbinMongoRule';
 
@@ -91,9 +90,8 @@ export default class TypeORMAdapter implements FilteredAdapter {
   }
 
   private async clearTable() {
-    await getRepository(
+    await this.typeorm.getRepository(
       this.getCasbinRuleConstructor(),
-      this.option.name,
     ).clear();
   }
 
@@ -112,9 +110,8 @@ export default class TypeORMAdapter implements FilteredAdapter {
    * loadPolicy loads all policy rules from the storage.
    */
   public async loadPolicy(model: Model) {
-    const lines = await getRepository(
+    const lines = await this.typeorm.getRepository(
       this.getCasbinRuleConstructor(),
-      this.option.name,
     ).find();
 
     for (const line of lines) {
@@ -124,9 +121,8 @@ export default class TypeORMAdapter implements FilteredAdapter {
 
   // Loading policies based on filter condition
   public async loadFilteredPolicy(model: Model, filter: object) {
-    const filteredLines = await getRepository(
+    const filteredLines = await this.typeorm.getRepository(
       this.getCasbinRuleConstructor(),
-      this.option.name,
     ).find(filter);
     for (const line of filteredLines) {
       this.loadPolicyLine(line, model);
@@ -211,7 +207,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    */
   public async addPolicy(sec: string, ptype: string, rule: string[]) {
     const line = this.savePolicyLine(ptype, rule);
-    await getRepository(this.getCasbinRuleConstructor(), this.option.name).save(
+    await this.typeorm.getRepository(this.getCasbinRuleConstructor()).save(
       line,
     );
   }
@@ -247,9 +243,8 @@ export default class TypeORMAdapter implements FilteredAdapter {
    */
   public async removePolicy(sec: string, ptype: string, rule: string[]) {
     const line = this.savePolicyLine(ptype, rule);
-    await getRepository(
+    await this.typeorm.getRepository(
       this.getCasbinRuleConstructor(),
-      this.option.name,
     ).delete(line);
   }
 
@@ -311,9 +306,8 @@ export default class TypeORMAdapter implements FilteredAdapter {
     if (fieldIndex <= 6 && 6 < fieldIndex + fieldValues.length) {
       line.v6 = fieldValues[6 - fieldIndex];
     }
-    await getRepository(
+    await this.typeorm.getRepository(
       this.getCasbinRuleConstructor(),
-      this.option.name,
     ).delete(line);
   }
 
