@@ -9,6 +9,7 @@
     "prepublish": "yarn run lint && yarn build",
     "build": "rimraf lib && tsc",
     "coverage": "jest --coverage",
+    "postinstall": "yarn run build",
     "lint": "tslint \"src/**/*.ts\"",
     "fix": "tslint \"src/**/*.ts\" --fix",
     "test": "jest --runInBand",
