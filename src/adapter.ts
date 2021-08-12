@@ -37,14 +37,16 @@ export default class TypeORMAdapter implements FilteredAdapter {
   private option: ConnectionOptions;
   private typeorm: Connection;
   private filtered = false;
+  private getRepositoryFunc: typeof getRepository;
 
-  private constructor(option: TypeORMAdapterOptions) {
+  private constructor(option: TypeORMAdapterOptions, getRepositoryFunc: typeof getRepository = getRepository) {
     if ((option as ExistentConnection).connection) {
       this.typeorm = (option as ExistentConnection).connection;
       this.option = this.typeorm.options;
     } else {
       this.option = option as ConnectionOptions;
     }
+    this.getRepositoryFunc = getRepositoryFunc;
   }
 
   public isFiltered(): boolean {
@@ -55,7 +57,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    * newAdapter is the constructor.
    * @param option typeorm connection option
    */
-  public static async newAdapter(option: TypeORMAdapterOptions) {
+  public static async newAdapter(option: TypeORMAdapterOptions, getRepositoryFunc: typeof getRepository = getRepository) {
     let a: TypeORMAdapter;
 
     const defaults = {
@@ -63,12 +65,12 @@ export default class TypeORMAdapter implements FilteredAdapter {
       name: 'node-casbin-official',
     };
     if ((option as ExistentConnection).connection) {
-      a = new TypeORMAdapter(option);
+      a = new TypeORMAdapter(option, getRepositoryFunc);
     } else {
       const options = option as ConnectionOptions;
       const entities = { entities: [this.getCasbinRuleType(options.type)] };
       const configuration = Object.assign(defaults, options);
-      a = new TypeORMAdapter(Object.assign(configuration, entities));
+      a = new TypeORMAdapter(Object.assign(configuration, entities), getRepositoryFunc);
     }
     await a.open();
     return a;
@@ -91,7 +93,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
   }
 
   private async clearTable() {
-    await getRepository(
+    await this.getRepositoryFunc(
       this.getCasbinRuleConstructor(),
       this.option.name,
     ).clear();
@@ -112,7 +114,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    * loadPolicy loads all policy rules from the storage.
    */
   public async loadPolicy(model: Model) {
-    const lines = await getRepository(
+    const lines = await this.getRepositoryFunc(
       this.getCasbinRuleConstructor(),
       this.option.name,
     ).find();
@@ -124,7 +126,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
 
   // Loading policies based on filter condition
   public async loadFilteredPolicy(model: Model, filter: object) {
-    const filteredLines = await getRepository(
+    const filteredLines = await this.getRepositoryFunc(
       this.getCasbinRuleConstructor(),
       this.option.name,
     ).find(filter);
@@ -211,7 +213,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    */
   public async addPolicy(sec: string, ptype: string, rule: string[]) {
     const line = this.savePolicyLine(ptype, rule);
-    await getRepository(this.getCasbinRuleConstructor(), this.option.name).save(
+    await this.getRepositoryFunc(this.getCasbinRuleConstructor(), this.option.name).save(
       line,
     );
   }
@@ -247,7 +249,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    */
   public async removePolicy(sec: string, ptype: string, rule: string[]) {
     const line = this.savePolicyLine(ptype, rule);
-    await getRepository(
+    await this.getRepositoryFunc(
       this.getCasbinRuleConstructor(),
       this.option.name,
     ).delete(line);
@@ -311,7 +313,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
     if (fieldIndex <= 6 && 6 < fieldIndex + fieldValues.length) {
       line.v6 = fieldValues[6 - fieldIndex];
     }
-    await getRepository(
+    await this.getRepositoryFunc(
       this.getCasbinRuleConstructor(),
       this.option.name,
     ).delete(line);
