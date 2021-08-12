@@ -37,9 +37,9 @@ export default class TypeORMAdapter implements FilteredAdapter {
   private option: ConnectionOptions;
   private typeorm: Connection;
   private filtered = false;
-  private getRepositoryFunc: typeof getRepository;
+  private getRepositoryFunc: any;
 
-  private constructor(option: TypeORMAdapterOptions, getRepositoryFunc: typeof getRepository = getRepository) {
+  private constructor(option: TypeORMAdapterOptions, getRepositoryFunc: any = getRepository) {
     if ((option as ExistentConnection).connection) {
       this.typeorm = (option as ExistentConnection).connection;
       this.option = this.typeorm.options;
@@ -57,7 +57,7 @@ export default class TypeORMAdapter implements FilteredAdapter {
    * newAdapter is the constructor.
    * @param option typeorm connection option
    */
-  public static async newAdapter(option: TypeORMAdapterOptions, getRepositoryFunc: typeof getRepository = getRepository) {
+  public static async newAdapter(option: TypeORMAdapterOptions, getRepositoryFunc: any = getRepository) {
     let a: TypeORMAdapter;
 
     const defaults = {
